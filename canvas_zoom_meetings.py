@@ -46,7 +46,7 @@ CANVAS = Canvas(ENV.get("CANVAS_API_URL"), ENV.get("CANVAS_API_KEY"))
 
 account = CANVAS.get_account(ENV.get("CANVAS_ACCOUNT" ,1))
 
-courses = account.get_courses(enrollment_term_id=ENV.get("CANVAS_TERM", "Winter 2020"))
+courses = account.get_courses(enrollment_term_id=ENV.get("CANVAS_TERM", 1))
 for course in courses:
     logger.info("Fetching course %s", course)
     # Get tabs and look for zoom

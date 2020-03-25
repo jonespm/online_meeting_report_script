@@ -12,6 +12,8 @@ from datetime import datetime
 from canvasapi import Canvas
 from bs4 import BeautifulSoup as bs
 
+import pandas as pd
+
 # read configurations
 try:
     with open(os.path.join('config', 'env.json')) as env_file:
@@ -42,6 +44,9 @@ CANVAS = Canvas(ENV.get("CANVAS_API_URL"), ENV.get("CANVAS_API_KEY"))
 
 
 def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
+    zoom_course_list = []
+    zoom_meeting_list = []
+
     account = CANVAS.get_account(canvas_account)
     # Canvas has a limit of 100 per page on this API
     per_page = 100
@@ -66,6 +71,10 @@ def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
                 soup = bs(r.text, 'html.parser')
                 # Get the form and parse out all of the inputs
                 form = soup.find('form')
+                if not form:
+                    logger.info("Could not find a form to launch this zoom page, skipping")
+                    break
+
                 fields = form.findAll('input')
                 formdata = dict((field.get('name'), field.get('value')) for field in fields)
 
@@ -79,6 +88,11 @@ def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
 
                 # Get the XSRF Token
                 pattern = re.search('"X-XSRF-TOKEN".* value:"(.*)"', r.text)
+
+                zoom_course_list.append({
+                    'account_id': course.account_id, 'course_id': course.id, 'course_name': course.name
+                })
+
                 if pattern:
                     zoom_s.headers.update({
                         'X-XSRF-TOKEN': pattern.group(1)
@@ -89,16 +103,35 @@ def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
                             'storage_timezone': 'America/Montreal',
                             'client_timezone': 'America/Detroit'}
                     r = zoom_s.get("https://applications.zoom.us/api/v1/lti/rich/meeting/history/COURSE/all", params=data)
-                    logger.info(json.loads(r.text))
-                    # Currently for testing quit on the first match
-                    logger.warn("FOR DEBUG RETURN ON FIRST MATCH")
-                    return
+                    zoom_json = json.loads(r.text)
+
+                    for meeting in zoom_json["result"]["list"]:
+                        zoom_meeting_list.append({
+                            'course_id': course.id,
+                            'meeting_id': meeting['meetingId'],
+                            'meeting_number': meeting['meetingNumber'],
+                            'host_id': meeting['hostId'],
+                            'topic': meeting['topic'],
+                            'join_url': meeting['joinUrl'],
+                            'start_time': meeting['startTime'],
+                            'status': meeting['status'],
+                            'timezone': meeting['timezone']
+                        })
+
+    zoom_courses_df = pd.DataFrame(zoom_course_list)
+    zoom_courses_df.index.name = "id"
+    zoom_courses_meetings_df = pd.DataFrame(zoom_meeting_list)
+    zoom_courses_meetings_df.index.name = "id"
+    return (zoom_courses_df, zoom_courses_meetings_df)
 
 
 start_time = datetime.now()
 logger.info(f"Script started at {start_time}")
 
-zoom_course_report(ENV.get("CANVAS_ACCOUNT", 1), ENV.get("CANVAS_TERM", 1), True)
+(zoom_courses_df, zoom_courses_meetings_df) = zoom_course_report(ENV.get("CANVAS_ACCOUNT", 1), ENV.get("CANVAS_TERM", 1), True)
+
+zoom_courses_df.to_csv("zoom_courses.csv")
+zoom_courses_meetings_df.to_csv("zoom_courses_meetings.csv")
 
 end_time = datetime.now()
 logger.info(f"Script finished at {start_time}")

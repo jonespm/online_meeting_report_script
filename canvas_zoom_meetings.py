@@ -47,8 +47,12 @@ def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
     per_page = 100
     # Get all published courses from the defined enrollment term
     courses = account.get_courses(enrollment_term_id=enrollment_term_id, published=published, per_page=per_page)
+    course_count = 0
     for course in courses:
-        logger.info("Fetching course %s", course)
+        course_count += 1
+        # TODO: In the future get the total count from the Paginated object
+        # Needs API support https://github.com/ucfopen/canvasapi/issues/114
+        logger.info(f"Fetching course #{course_count} for {course}")
         # Get tabs and look for zoom
         tabs = course.get_tabs()
         for tab in tabs:

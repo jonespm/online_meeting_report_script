@@ -43,8 +43,10 @@ CANVAS = Canvas(ENV.get("CANVAS_API_URL"), ENV.get("CANVAS_API_KEY"))
 
 def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
     account = CANVAS.get_account(canvas_account)
+    # Canvas has a limit of 100 per page on this API
+    per_page = 100
     # Get all published courses from the defined enrollment term
-    courses = account.get_courses(enrollment_term_id=enrollment_term_id, published=published)
+    courses = account.get_courses(enrollment_term_id=enrollment_term_id, published=published, per_page=per_page)
     for course in courses:
         logger.info("Fetching course %s", course)
         # Get tabs and look for zoom

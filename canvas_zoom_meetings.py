@@ -44,8 +44,8 @@ CANVAS = Canvas(ENV.get("CANVAS_API_URL"), ENV.get("CANVAS_API_KEY"))
 
 
 def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
-    zoom_course_list = []
-    zoom_meeting_list = []
+    zoom_courses = []
+    zoom_courses_meetings = []
 
     account = CANVAS.get_account(canvas_account)
     # Canvas has a limit of 100 per page on this API
@@ -89,7 +89,7 @@ def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
                 # Get the XSRF Token
                 pattern = re.search('"X-XSRF-TOKEN".* value:"(.*)"', r.text)
 
-                zoom_course_list.append({
+                zoom_courses.append({
                     'account_id': course.account_id, 'course_id': course.id, 'course_name': course.name
                 })
 
@@ -106,7 +106,7 @@ def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
                     zoom_json = json.loads(r.text)
 
                     for meeting in zoom_json["result"]["list"]:
-                        zoom_meeting_list.append({
+                        zoom_courses_meetings.append({
                             'course_id': course.id,
                             'meeting_id': meeting['meetingId'],
                             'meeting_number': meeting['meetingNumber'],
@@ -117,18 +117,18 @@ def zoom_course_report(canvas_account=1, enrollment_term_id=1, published=True):
                             'status': meeting['status'],
                             'timezone': meeting['timezone']
                         })
-
-    zoom_courses_df = pd.DataFrame(zoom_course_list)
-    zoom_courses_df.index.name = "id"
-    zoom_courses_meetings_df = pd.DataFrame(zoom_meeting_list)
-    zoom_courses_meetings_df.index.name = "id"
-    return (zoom_courses_df, zoom_courses_meetings_df)
+    return (zoom_courses, zoom_courses_meetings)
 
 
 start_time = datetime.now()
 logger.info(f"Script started at {start_time}")
 
-(zoom_courses_df, zoom_courses_meetings_df) = zoom_course_report(ENV.get("CANVAS_ACCOUNT", 1), ENV.get("CANVAS_TERM", 1), True)
+(zoom_courses, zoom_courses_meetings) = zoom_course_report(ENV.get("CANVAS_ACCOUNT", 1), ENV.get("CANVAS_TERM", 1), True)
+
+zoom_courses_df = pd.DataFrame(zoom_courses)
+zoom_courses_df.index.name = "id"
+zoom_courses_meetings_df = pd.DataFrame(zoom_courses_meetings)
+zoom_courses_meetings_df.index.name = "id"
 
 zoom_courses_df.to_csv("zoom_courses.csv")
 zoom_courses_meetings_df.to_csv("zoom_courses_meetings.csv")

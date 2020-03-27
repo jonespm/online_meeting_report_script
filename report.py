@@ -142,8 +142,8 @@ def zoom_loop(url: str, headers: dict, json_attribute_name: str,
 
 
 # run users report
-# run_report('/v2/users', headers, 'users', {"status": "active", "page_number": 1}, page_token=False, use_date=False)
+run_report('/v2/users', headers, 'users', {"status": "active", "page_number": 1}, page_token=False, use_date=False)
 # run meetings report
-# run_report('/v2/metrics/meetings', headers, 'meetings', {"type": "past"}, page_token=True, use_date=True)
+run_report('/v2/metrics/meetings', headers, 'meetings', {"type": "past"}, page_token=True, use_date=True)
 # run webinars report
 run_report('/v2/metrics/webinars', headers, 'webinars', {"type": "past"}, page_token=True, use_date=True)

@@ -86,7 +86,7 @@ def run_report(api_url: str, headers: dict, json_attribute_name: str,
     logger.info(f"Initial dataframe size: {len(total_df)}")
     if "uuid" in total_df:
         total_df.drop_duplicates("uuid", inplace=True)
-        logger.inf(f"Dataframe with duplicates removed: {len(total_df)}")
+        logger.info(f"Dataframe with duplicates removed: {len(total_df)}")
 
     # Sort columns alphabetically
     total_df.sort_index(axis=1, inplace=True)
@@ -133,7 +133,7 @@ def zoom_loop(url: str, headers: dict, json_attribute_name: str,
                 results = json.loads(response.text.encode('utf8'))
 
                 total_list.extend(results[json_attribute_name])
-                logger.info(f'Data size from page: {len(total_list)}')
+                logger.info(f'Current size of list: {len(total_list)}')
 
                 # go retrieve next page
                 if results.get("next_page_token"):

@@ -122,7 +122,7 @@ def zoom_loop(url: str, headers: dict, json_attribute_name: str,
             while status_code == 429:
                 time.sleep(sleep_time)
                 response = requests.request(
-                    "GET", url, headers=headers, data=params)
+                    "GET", url, headers=headers, params=params)
                 status_code = response.status_code
 
         if status_code != 200:

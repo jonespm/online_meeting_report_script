@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Default time to sleep when hitting a 429 limit
 DEFAULT_SLEEP_TIME = 10
 
+
 # Functions
 def get_total_page_count(url: str, headers: Dict[str, Union[str, int]] = {}):
     # get the total page count
@@ -29,7 +30,6 @@ def get_total_page_count(url: str, headers: Dict[str, Union[str, int]] = {}):
         logger.info('No page at all!')
     else:
         try:
-            print (response.text)
             results = json.loads(response.text.encode('utf8'))
             total_page_count = results['page_count']
         except JSONDecodeError:
@@ -55,6 +55,7 @@ payload = {}
 headers = {
   "Authorization": f"Bearer {ENV['ZOOM_TOKEN']}"
 }
+
 
 def run_report(param_attribute, headers, json_attribute_name, page_token=False):
 

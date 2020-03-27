@@ -77,11 +77,21 @@ def run_report(api_url: str, headers: dict, json_attribute_name: str,
             # Add this loop to the list
             total_list.extend(zoom_loop(url, headers, json_attribute_name, dict(params), page_token))
     else:
-        total_list.append(zoom_loop(url, headers, json_attribute_name, dict(params), page_token))
+        total_list.extend(zoom_loop(url, headers, json_attribute_name, dict(params), page_token))
     # output csv file
     total_df = pd.DataFrame(total_list)
-    total_df.index.name = "id"
+    total_df.index.name = "index_id"
     output_file_name = f"total_{json_attribute_name}.csv"
+    # Remove any duplicate uuids in the record
+    logger.info(f"Initial dataframe size: {len(total_df)}")
+    if "uuid" in total_df:
+        total_df.drop_duplicates("uuid", inplace=True)
+        logger.inf(f"Dataframe with duplicates removed: {len(total_df)}")
+
+    # Sort columns alphabetically
+    total_df.sort_index(axis=1, inplace=True)
+
+    # Write to CSV
     total_df.to_csv(output_file_name)
 
 

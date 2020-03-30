@@ -59,10 +59,12 @@ def get_total_page_count(url: str, headers: Dict[str, Union[str, int]] = {}, par
 
 
 def run_report(api_url: str, headers: dict, json_attribute_name: str,
-               default_params: dict = {}, page_token: bool = False, use_date: bool = False):
+               default_params: dict = {}, page_size: int = 300, page_token: bool = False, use_date: bool = False):
     url = ZOOM_BASE_URL+api_url
     params = default_params
-    params['page_size'] = 300
+    # If page size is specified use this
+    if page_size:
+        params['page_size'] = page_size
     total_list = []
     # TODO: Detect the date from the previous CSV
     # Either loop for all dates or just one a single report
